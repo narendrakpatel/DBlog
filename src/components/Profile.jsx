@@ -63,6 +63,14 @@ export default class Profile extends Component {
               </div>
 
               <div className="new-status">
+                <div className="col-md-12 statuses">
+                  { this.state.isLoading && <span>Loading....</span> }
+                  { this.state.statuses.map((status) => {
+                    <div className="status" key={ status.id }>
+                      { status.text }
+                    </div>
+                  }) }
+                </div>
                 <div className="col-md-12">
                   <textarea
                     className="input-display"
@@ -94,6 +102,10 @@ export default class Profile extends Component {
     });
   }
 
+  componentDidMount() {
+    this.fetchData();
+  }
+
   handleNewStatusChange(event) {
     this.setState({
       newStatus: event.target.value,
@@ -118,9 +130,29 @@ export default class Profile extends Component {
 
     statuses.unshift(status);
     const options = { encrypt: false };
-    putFile('status.json', JSON.stringify(statuses), options).then(() => {
+    putFile('statuses.json', JSON.stringify(statuses), options).then(() => {
       this.setState({
         statuses: statuses,
+      });
+    });
+  }
+
+  fetchData() {
+    this.setState({
+      isLoading: true,
+    });
+    const options = { decrypt: false };
+    getFile('statuses.json', options).then((file) => {
+      const statuses = JSON.parse(file || '[]');
+      this.setState({
+        person: new Person(loadUserData().profile),
+        username: loadUserData().username,
+        statusIndex: statuses.length,
+        statuses: statuses,
+      })
+    }).finally(() => {
+      this.setState({
+        isLoading: false,
       });
     });
   }
