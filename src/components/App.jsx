@@ -1,6 +1,4 @@
 import React, { Component, Link } from 'react';
-import Profile from './Profile.jsx';
-import Signin from './Signin.jsx';
 import {
   isSignInPending,
   isUserSignedIn,
@@ -8,6 +6,10 @@ import {
   handlePendingSignIn,
   signUserOut,
 } from 'blockstack';
+import { Switch, Route } from 'react-router-dom';
+
+import Profile from './Profile.jsx';
+import Signin from './Signin.jsx';
 
 export default class App extends Component {
 
@@ -32,7 +34,15 @@ export default class App extends Component {
         <div className="site-wrapper-inner">
           { !isUserSignedIn() ?
             <Signin handleSignIn={ this.handleSignIn } />
-            : <Profile handleSignOut={ this.handleSignOut } />
+            :
+            <Switch>
+              <Route
+                path='/:username?'
+                render={
+                  routeProps => <Profile handleSignOut={ this.handleSignOut } { ...routeProps } />
+                }
+              />
+            </Switch>
           }
         </div>
       </div>
