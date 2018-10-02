@@ -141,19 +141,54 @@ export default class Profile extends Component {
     this.setState({
       isLoading: true,
     });
-    const options = { decrypt: false };
-    getFile('statuses.json', options).then((file) => {
-      const statuses = JSON.parse(file || '[]');
-      this.setState({
-        person: new Person(loadUserData().profile),
-        username: loadUserData().username,
-        statusIndex: statuses.length,
-        statuses: statuses,
-      })
-    }).finally(() => {
-      this.setState({
-        isLoading: false,
+    if (this.isLocal()){
+      const options = { decrypt: false };
+      getFile('statuses.json', options).then((file) => {
+        const statuses = JSON.parse(file || '[]');
+        this.setState({
+          person: new Person(loadUserData().profile),
+          username: loadUserData().username,
+          statusIndex: statuses.length,
+          statuses: statuses,
+        })
+      }).finally(() => {
+        this.setState({
+          isLoading: false,
+        });
       });
-    });
+    } else {
+      const username = this.props.match.params.username;
+
+      lookupProfile(username)
+        .then((profile) => {
+          this.setState({
+            person: new Person(profile),
+            username: username
+          });
+        })
+        .catch((err) => {
+          console.log('Could not resolve profile.');
+        });
+
+        const options = { username: username, decrypt: false };
+        getFile('statuses.json', options)
+          .then((file) => {
+            var statuses = JSON.parse(file || '[]');
+            this.setState({
+              statusIndex: statuses.length,
+              statuses: statuses
+            });
+          })
+          .catch((error) => {
+            console.log('could not fetch statuses');
+          })
+          .finally(() => {
+            this.setState({ isLoading: false });
+          });
+    }
+  }
+
+  isLocal() {
+    return this.props.match.params.username ? false : true
   }
 }
